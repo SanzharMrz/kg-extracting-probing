@@ -39,8 +39,9 @@ def get_vectors_name(attentions_types, use_bert, use_lmms):
         
     return name
 
-def get_Xy_data(data_type, vectors_name):
-    with open(f'./vectors_recomputed_sum/{data_type}_{vectors_name}.pkl', 'rb') as file:
+def get_Xy_data(data_type, folder, vectors_name):
+    vectors_path = os.path.join(folder, f'{data_type}_{vectors_name}.pkl')
+    with open(vectors_path, 'rb') as file:
         embeddings = pickle.load(file)
     
     embeddings_df = pd.DataFrame(embeddings, columns=['embedding', 'triplet', 'rel_label'])
@@ -52,7 +53,7 @@ def get_Xy_data(data_type, vectors_name):
     
     return embs, labels
 
-def train_lr_bin(X_train, labels_train, X_test, labels_test, vectors_name):
+def train_lr_bin(X_train, labels_train, X_test, labels_test, vectors_name, folder):
     y_train = np.array(['0' if label == '0' else '1' for label in labels_train]).reshape(-1, 1)
     y_test = np.array(['0' if label == '0' else '1' for label in labels_test]).reshape(-1, 1)
     n_attentions = len(vectors_name.split('_')) - 2
@@ -66,7 +67,8 @@ def train_lr_bin(X_train, labels_train, X_test, labels_test, vectors_name):
 
     lr_bin = LogisticRegression(max_iter=iters, solver='saga', n_jobs=32, verbose=2).fit(X_train, y_train)
 
-    with open(f'./logreg_models_recomputed_sum/lr_bin_{vectors_name}.pkl', 'wb') as file:
+    model_folder = os.path.join(folder, f'lr_bin_{vectors_name}.pkl')
+    with open(model_folder, 'wb') as file:
           pickle.dump(lr_bin, file)
             
     y_pred = lr_bin.predict(X_test)
@@ -74,11 +76,12 @@ def train_lr_bin(X_train, labels_train, X_test, labels_test, vectors_name):
     report = classification_report(y_test, y_pred, output_dict=True)
     print(report)
     
+    report_folder = os.path.join(folder, f'report_bin_{vectors_name}.csv')
     report_df = pd.DataFrame(report).transpose()
-    report_df.to_csv(f'./logreg_models_recomputed_sum/report_bin_{vectors_name}.csv')
+    report_df.to_csv(report_folder)
     
 
-def train_lr_multi(X_train, y_train, X_test, y_test, vectors_name):    
+def train_lr_multi(X_train, y_train, X_test, y_test, vectors_name, folder):    
     #  убираем мусорный класс
     ros = RandomUnderSampler(sampling_strategy={'0': 0})
     
@@ -99,12 +102,14 @@ def train_lr_multi(X_train, y_train, X_test, y_test, vectors_name):
         iters += 5
         
     lr_multi = LogisticRegression(class_weight='balanced', solver='saga', max_iter=iters, n_jobs=32, verbose=2).fit(X_train, y_train)
-
-    with open(f'./logreg_models_recomputed_sum/lr_multi_{vectors_name}.pkl', 'wb') as file:
+    
+    model_folder = os.path.join(folder, f'lr_multi_{vectors_name}.pkl')
+    with open(model_folder, 'wb') as file:
           pickle.dump(lr_multi, file)
 
     y_pred = lr_multi.predict(X_test)
 
     report = classification_report(y_test, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
-    report_df.to_csv(f'./logreg_models_recomputed_sum/report_multi_{vectors_name}.csv')
+    report_folder = os.path.join(folder, f'report_multi_{vectors_name}.csv')
+    report_df.to_csv(report_folder)

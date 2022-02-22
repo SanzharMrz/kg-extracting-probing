@@ -32,11 +32,11 @@ def get_vectorname(attention_types, use_bert, use_lmms):
     return name
 
 
-def load_lr_models(vector_names):
-    with open(f'./logreg_models_recomputed_sum/lr_multi_{vector_names}.pkl', 'rb') as file:
+def load_lr_models(folder, vector_names):
+    with open(os.path.join(folder, 'lr_multi_{vector_names}.pkl'), 'rb') as file:
         lr_multi = pickle.load(file)
 
-    with open(f'./logreg_models_recomputed_sum/lr_bin_{vector_names}.pkl', 'rb') as file:
+    with open(os.path.join(folder, 'lr_bin_{vector_names}.pkl'), 'rb') as file:
         lr_bin = pickle.load(file)
     
     return lr_bin, lr_multi
@@ -200,7 +200,7 @@ def compute_logreg_nm(rel, rel_embeddings, subset_target, attention_types, use_b
         return 0, 0, 0, tp_predicts_dict, fp_predicts_dict, 0, 0
 
 
-def compute_csv_default(dataset, lr_bin, lr_multi, attention_types, use_bert, use_lmms, full_embeddings, filename='filename', threshold_bin=0.7, threshold_multi=0.2):        
+def compute_csv_default(dataset, lr_bin, lr_multi, attention_types, use_bert, use_lmms, full_embeddings, filename, folder, threshold_bin=0.7, threshold_multi=0.2):        
 
     rels, prs, rcls, f1s = [], [], [], []
     sizes, labels, tp_preds, fp_preds, rel_acc = [], [], [], [], []
@@ -257,5 +257,5 @@ def compute_csv_default(dataset, lr_bin, lr_multi, attention_types, use_bert, us
                                    'tps': tp_preds,
                                    'fps': fp_preds,
                                    'rel_acc': rel_acc})
-    
-    scoring_result.to_csv(f'./val_results_recomputed_sum/{filename}.csv', index=False)
+    report_path = os.path.join(folder, f'./val_results_recomputed_sum/{filename}.csv')
+    scoring_result.to_csv(report_path, index=False)

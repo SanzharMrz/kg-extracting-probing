@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pickle
 
@@ -56,15 +57,17 @@ def get_filename(data_type, attention_types, use_bert, use_lmms):
     return name
 
 
-def generate_new_embeddings(data_type, attention_types, use_bert, use_lmms):
-    with open(f'./vectors_recomputed_sum/{data_type}_h-r_r-t_h-t_r-h_t-r_t-h.pkl', 'rb') as file:
+def generate_new_embeddings(data_type, folder, attention_types, use_bert, use_lmms):
+    vector_path = os.path.join(folder, f'{data_type}_h-r_r-t_h-t_r-h_t-r_t-h.pkl')
+    with open(vector_path, 'rb') as file:
         full_embeddings = pickle.load(file)
         
     new_vectors_name = get_filename(data_type, attention_types, use_bert, use_lmms)
+    new_vectors_name_path = os.path.join(vector_path, f'{new_vectors_name}.pkl')
     new_embeddings = []
     
     for full_emb in full_embeddings:
         new_embeddings.append(generate_one_embedding(full_emb, data_type, attention_types, use_bert, use_lmms))
     
-    with open(f'./vectors_recomputed_sum/{new_vectors_name}.pkl', 'wb') as file:
+    with open(new_vectors_name_path, 'wb') as file:
          pickle.dump(new_embeddings, file)

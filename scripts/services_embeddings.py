@@ -28,8 +28,6 @@ string.punctuation += '–'
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
-#ft_model = ft.load_model('../../../language-models-are-knowledge-graphs-pytorch/similarity/LMMS/cc.en.300.bin')
-#ft_model = ft.load_model('path/to/model/cc.en.300.bin')
 nlp = en_core_web_sm.load()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -261,9 +259,9 @@ def get_filename(data_type, attentions_types, use_bert, use_lmms):
     return name
 
 
-def get_embeddings_corpus(data_type, attentions_types, use_bert, use_lmms):  
+def get_embeddings_corpus(save_folder, data_path, data_type, attentions_types, use_bert=False, use_lmms=False):  
     use_cuda = True
-    data = pd.read_csv(f'../data/train-val-test/{data_type}.csv', header=0)
+    data = pd.read_csv(f'../data/{data_path}/{data_type}.csv', header=0)
     all_embeddings = []
     
     if data_type == 'train' or data_type == 'test':
@@ -291,16 +289,6 @@ def get_embeddings_corpus(data_type, attentions_types, use_bert, use_lmms):
             all_embeddings.append(embeddings_text)
         
     file_name = get_filename(data_type, attentions_types, use_bert, use_lmms)
-        
-#         df = pd.DataFrame(embeddings_text)
-#         df.to_csv(f'./vectors/{csv_name}.csv', mode='a', header=False, index=False)
     
-    with open(f'./vectors_recomputed_sum/{file_name}.pkl', 'wb') as file:
+    with open(os.path.join(save_folder, f'{file_name}.pkl'), 'wb') as file:
         pickle.dump(all_embeddings, file)
-        
-        
-def get_train_test_data(attentions_types, use_bert, use_lmms):
-    get_embeddings_corpus('train', attentions_types, use_bert, use_lmms)
-    get_embeddings_corpus('test', attentions_types, use_bert, use_lmms)
-    get_embeddings_corpus('valid', attentions_types, use_bert, use_lmms)
-
