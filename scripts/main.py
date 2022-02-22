@@ -30,6 +30,10 @@ logreg_folders = os.path.join(experiment_path, 'logreg_models')
 val_results_folders = os.path.join(experiment_path, 'val_results')
 data_type = 'train-val-test' # TODO add train-val-test-nb inside data/ folder 
 
+os.makedirs(vectors_folder, exist_ok=True)
+os.makedirs(logreg_folders, exist_ok=True)
+os.makedirs(val_results_folders, exist_ok=True)
+
 if args.compute_raw_embeddings:
     attentions_types = [1, 1, 1, 1, 1, 1]
     if args.compute_raw_embeddings_train:
