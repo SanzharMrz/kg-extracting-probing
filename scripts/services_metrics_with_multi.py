@@ -262,5 +262,5 @@ def compute_csv_default(dataset, lr_bin, lr_multi, attention_types, use_bert, us
                                    'tps': tp_preds,
                                    'fps': fp_preds,
                                    'rel_acc': rel_acc})
-    report_path = os.path.join(folder, f'./val_results_recomputed_sum/{filename}.csv')
+    report_path = os.path.join(folder, f'{filename}.csv')
     scoring_result.to_csv(report_path, index=False)

@@ -14,7 +14,7 @@ from services_logreg import (get_vectors_name, get_Xy_data, train_lr_bin, train_
 from services_metrics_with_multi import (get_vectorname, load_lr_models, compute_csv_default)
 from services_embeddings import get_embeddings_corpus
 
-parser = argparse.ArgumentParser(prog='MAIN', description="Probing some LM's", description=textwrap.dedent('''\
+parser = argparse.ArgumentParser(prog='MAIN', description=textwrap.dedent('''\
                                                     Run probing experiments! Examples:
                                                     --------------------------------------------------
                                                     python main.py -e not_biased_dataset -c 0 -s 0 1 1
@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(prog='MAIN', description="Probing some LM's", d
                                                     '''))
 parser.add_argument('-e', '--experiment_name', type=str, help='set here your experiment name', default='default_experiment')
 parser.add_argument('-c', '--compute_raw_embeddings', type=int, help='if you want to compute raw vectors experiment set 1 else 0', default=0)
-parser.add_argument('-s', '--stages', help='experiment stages', action='store', nargs=3, default=[1, 1, 1])
+parser.add_argument('-s', '--stages', help='experiment stages', type=int, action='store', nargs=3, default=[1, 1, 1])
 
 parser.add_argument('-ct', '--compute_raw_embeddings_train', type=int, help='if you want to compute train raw vectors experiment set 1 else 0', default=1)
 parser.add_argument('-cte', '--compute_raw_embeddings_test', type=int, help='if you want to compute test raw vectors experiment set 1 else 0', default=1)
