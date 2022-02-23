@@ -33,10 +33,10 @@ def get_vectorname(attention_types, use_bert, use_lmms):
 
 
 def load_lr_models(folder, vector_names):
-    with open(os.path.join(folder, 'lr_multi_{vector_names}.pkl'), 'rb') as file:
+    with open(os.path.join(folder, f'lr_multi_{vector_names}.pkl'), 'rb') as file:
         lr_multi = pickle.load(file)
 
-    with open(os.path.join(folder, 'lr_bin_{vector_names}.pkl'), 'rb') as file:
+    with open(os.path.join(folder, f'lr_bin_{vector_names}.pkl'), 'rb') as file:
         lr_bin = pickle.load(file)
     
     return lr_bin, lr_multi
@@ -118,21 +118,26 @@ def deduplication(pred_list):
     return prediction, predicted_labels, multi_confidences
 
 
-def get_predictions(text_embeddings, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin=0.7, threshold_multi=0.2):
+def get_predictions(text_embeddings, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin=0.7, threshold_multi=0.2, topk=10):
     pred_list = []
+    
     new_text_embeddings = get_embeddings(text_embeddings, attention_types, use_bert, use_lmms)
     for emb in new_text_embeddings:
-
         binary_conf = lr_bin.predict_proba(emb[0].reshape(1, -1))[0][1]
-            
-        if binary_conf > threshold_bin:
-            multi_conf = max(lr_multi.predict_proba(emb[0].reshape(1, -1))[0])
-            if multi_conf > threshold_multi:
-                predicted_label = list(lr_multi.predict(emb[0].reshape(1, -1)))[0]
-                triplet = emb[1]
-                pred_list.append((predicted_label, triplet, binary_conf, multi_conf))
-    return pred_list
-
+        multi_conf = max(lr_multi.predict_proba(emb[0].reshape(1, -1))[0])
+        predicted_label = list(lr_multi.predict(emb[0].reshape(1, -1)))[0]
+        triplet = emb[1]
+        triplet_final = (predicted_label, triplet, binary_conf, multi_conf)
+        pred_list.append(triplet_final)
+    
+    pred_list_sorted = sorted(pred_list, key=lambda y: y[2])[::-1]
+    pred_list_sorted_filtered = list(filter(lambda x: (x[2] >= threshold_bin) and (x[3] >= threshold_multi), pred_list_sorted))[:topk]
+    
+    if not len(pred_list_sorted_filtered):
+        if not len(new_text_embeddings):
+            return []
+        return [pred_list_sorted[0]]
+    return pred_list_sorted_filtered
 
 def compare_triplets(targets, predict, dist_thresh=0.4):
     compare_result = []
