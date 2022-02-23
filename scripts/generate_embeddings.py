@@ -63,7 +63,7 @@ def generate_new_embeddings(data_type, folder, attention_types, use_bert, use_lm
         full_embeddings = pickle.load(file)
         
     new_vectors_name = get_filename(data_type, attention_types, use_bert, use_lmms)
-    new_vectors_name_path = os.path.join(vector_path, f'{new_vectors_name}.pkl')
+    new_vectors_name_path = os.path.join(folder, f'{new_vectors_name}.pkl')
     new_embeddings = []
     
     for full_emb in full_embeddings:
