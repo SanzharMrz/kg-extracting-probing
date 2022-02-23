@@ -66,7 +66,7 @@ for idx, comb in tqdm(enumerate(combinations), total=len(combinations)):
     print('Combinations: ', comb)
     
     if idx > 0:
-        continue
+        break
     
     # generate new embeddings
     if stages[0]:
