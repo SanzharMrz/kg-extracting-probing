@@ -56,16 +56,8 @@ def get_Xy_data(data_type, folder, vectors_name):
 def train_lr_bin(X_train, labels_train, X_test, labels_test, vectors_name, folder):
     y_train = np.array(['0' if label == '0' else '1' for label in labels_train]).reshape(-1, 1)
     y_test = np.array(['0' if label == '0' else '1' for label in labels_test]).reshape(-1, 1)
-    n_attentions = len(vectors_name.split('_')) - 2
-    iters = 100
-        
-    if n_attentions > 2:
-        iters += 25
 
-    if n_attentions == 6:
-        iters += 25
-
-    lr_bin = LogisticRegression(max_iter=iters, solver='saga', n_jobs=32, verbose=2).fit(X_train, y_train)
+    lr_bin = LogisticRegression(solver='saga', n_jobs=32, verbose=2).fit(X_train, y_train)
 
     model_folder = os.path.join(folder, f'lr_bin_{vectors_name}.pkl')
     with open(model_folder, 'wb') as file:
@@ -92,15 +84,7 @@ def train_lr_multi(X_train, y_train, X_test, y_test, vectors_name, folder):
     X_test_resampled, y_test_resampled = ros.fit_resample(X_test, y_test)
     X_test = np.array(X_test_resampled)
     y_test = np.array(y_test_resampled)
-    n_attentions = len(vectors_name.split('_')) - 2
-    iters = 100
-        
-    if n_attentions > 2:
-        iters += 5
 
-    if n_attentions == 6:
-        iters += 5
-        
     lr_multi = LogisticRegression(class_weight='balanced', solver='saga', max_iter=iters, n_jobs=32, verbose=2).fit(X_train, y_train)
     
     model_folder = os.path.join(folder, f'lr_multi_{vectors_name}.pkl')

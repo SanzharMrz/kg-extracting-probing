@@ -11,7 +11,7 @@ from settings import EXPERIMENTS_BASE_DIR
 
 from generate_embeddings import generate_new_embeddings
 from services_logreg import (get_vectors_name, get_Xy_data, train_lr_bin, train_lr_multi)
-from services_metrics_with_multi import (get_vectorname, load_lr_models, compute_csv_default)
+from services_metrics_with_multi import (get_vectorname, load_lr_models, compute_csv_default, compute_csv)
 from services_embeddings import get_embeddings_corpus
 
 parser = argparse.ArgumentParser(prog='MAIN', description=textwrap.dedent('''\
@@ -37,7 +37,7 @@ experiment_path = os.path.join(EXPERIMENTS_BASE_DIR, experiment_name)
 vectors_folder = os.path.join(experiment_path, 'vectors')
 logreg_folders = os.path.join(experiment_path, 'logreg_models')
 val_results_folders = os.path.join(experiment_path, 'val_results')
-data_type = 'train-val-test' # TODO add train-val-test-nb inside data/ folder 
+data_type = 'train-val-test-nb' # TODO add train-val-test-nb inside data/ folder 
 
 os.makedirs(vectors_folder, exist_ok=True)
 os.makedirs(logreg_folders, exist_ok=True)
@@ -85,4 +85,5 @@ for idx, comb in tqdm(enumerate(combinations), total=len(combinations)):
     if stages[2]:
         vectorname = get_vectorname(comb, False, False)    
         lr_bin, lr_multi = load_lr_models(logreg_folders, vectorname)
-        compute_csv_default(val_data, lr_bin, lr_multi, comb, False, False, full_embeddings, filename=f'res_{vectorname}', folder=val_results_folders)
+        # compute_csv_default(val_data, lr_bin, lr_multi, comb, False, False, full_embeddings, filename=f'res_{vectorname}', folder=val_results_folders)
+        compute_csv(val_data, lr_bin, lr_multi, comb, False, False, full_embeddings, filename=f'res_{vectorname}', folder=val_results_folders)

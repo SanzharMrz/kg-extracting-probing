@@ -264,3 +264,72 @@ def compute_csv_default(dataset, lr_bin, lr_multi, attention_types, use_bert, us
                                    'rel_acc': rel_acc})
     report_path = os.path.join(folder, f'{filename}.csv')
     scoring_result.to_csv(report_path, index=False)
+
+
+
+def compute_logreg_nm_new(embeddings, targets, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin, threshold_multi):
+    fp, tp, fn = 0, 0, 0
+    tp_predicts_dict = {}
+    fp_predicts_dict = {}
+    assert len(embeddings) == len(targets)
+    for idx, text_embeddings in tqdm(enumerate(embeddings), total=len(embeddings)):
+#         try:
+        predictions = get_predictions(text_embeddings, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin, threshold_multi)
+#         except IndexError:
+#             print(idx)
+#             continue
+        filtered_predictions, predicted_labels, multi_confidences = deduplication(predictions)
+        target_triplets = [target[:3] for target in targets[idx]]
+        tp_predicts = []
+        fp_predicts = []
+        
+        for i, predict in enumerate(filtered_predictions):
+            
+            score_bool = compare_triplets(target_triplets, predict)
+
+            if score_bool:
+                tp_predicts.append((predict[0], predict[1], predict[2], predicted_labels[i], multi_confidences[i]))
+                tp += 1
+            else:
+                fp_predicts.append((predict[0], predict[1], predict[2], predicted_labels[i], multi_confidences[i]))
+                fp += 1
+                
+        if len(tp_predicts):
+            tp_predicts_dict[idx] = tp_predicts
+        
+        if len(fp_predicts):
+            fp_predicts_dict[idx] = fp_predicts
+        
+        for target in target_triplets:
+            score_bool = compare_triplets(filtered_predictions, target)
+            if not score_bool:
+                fn += 1
+
+    try:        
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        f1 = 2 * (precision * recall) / (precision + recall)
+        return precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fp, tp
+    
+    except ZeroDivisionError:
+        return 0, 0, 0, tp_predicts_dict, fp_predicts_dict, 0, 0
+
+
+
+def compute_csv(dataset, lr_bin, lr_multi, attention_types, use_bert, use_lmms, full_embeddings, filename, folder, threshold_bin=0.7, threshold_multi=0.2):        
+
+    subset_target = dataset.target.apply(eval).values
+    embeddings = np.array(full_embeddings)
+    
+    precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fp, tp = compute_logreg_nm_new(embeddings, subset_target, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin, threshold_multi)
+
+    scoring_result = pd.DataFrame({'precision': [precision], 
+                                   'recall': [recall], 
+                                   'f1': [f1],
+                                   'tps_dict': [tp_predicts_dict],
+                                   'fps_dict': [fp_predicts_dict],
+                                   'tps': [tp],
+                                   'fps': [fp],
+                                   })
+    report_path = os.path.join(folder, f'{filename}.csv')
+    scoring_result.to_csv(report_path, index=False)
