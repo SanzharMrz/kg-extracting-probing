@@ -37,7 +37,7 @@ experiment_path = os.path.join(EXPERIMENTS_BASE_DIR, experiment_name)
 vectors_folder = os.path.join(experiment_path, 'vectors')
 logreg_folders = os.path.join(experiment_path, 'logreg_models')
 val_results_folders = os.path.join(experiment_path, 'val_results')
-data_type = 'train-val-test-nb' # TODO add train-val-test-nb inside data/ folder 
+data_type = 'train-val-test' # TODO add train-val-test-nb inside data/ folder 
 
 os.makedirs(vectors_folder, exist_ok=True)
 os.makedirs(logreg_folders, exist_ok=True)
