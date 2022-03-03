@@ -18,7 +18,7 @@ import torch
 from transformers import BertModel, BertTokenizer
 
 import warnings
-from utils import *
+from utils_nltk import *
 
 warnings.simplefilter('ignore')
 
