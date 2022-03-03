@@ -85,7 +85,7 @@ def train_lr_multi(X_train, y_train, X_test, y_test, vectors_name, folder):
     X_test = np.array(X_test_resampled)
     y_test = np.array(y_test_resampled)
 
-    lr_multi = LogisticRegression(class_weight='balanced', solver='saga', max_iter=iters, n_jobs=32, verbose=2).fit(X_train, y_train)
+    lr_multi = LogisticRegression(class_weight='balanced', solver='saga', n_jobs=32, verbose=2).fit(X_train, y_train)
     
     model_folder = os.path.join(folder, f'lr_multi_{vectors_name}.pkl')
     with open(model_folder, 'wb') as file:
