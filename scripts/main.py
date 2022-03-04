@@ -14,6 +14,12 @@ from services_logreg import (get_vectors_name, get_Xy_data, train_lr_bin, train_
 from services_metrics_with_multi import (get_vectorname, load_lr_models, compute_csv_default, compute_csv)
 from services_embeddings import get_embeddings_corpus
 
+from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+
+tokenizer_ner = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
+model_ner = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
+ner = pipeline("ner", model=model_ner, tokenizer=tokenizer_ner)
+
 parser = argparse.ArgumentParser(prog='MAIN', description=textwrap.dedent('''\
                                                     Run probing experiments! Examples:
                                                     --------------------------------------------------
@@ -50,7 +56,7 @@ if args.compute_raw_embeddings:
     if args.compute_raw_embeddings_test:
         get_embeddings_corpus(vectors_folder, data_type, 'test', attentions_types)
     if args.compute_raw_embeddings_valid:
-        get_embeddings_corpus(vectors_folder, data_type, 'valid', attentions_types)
+        get_embeddings_corpus(vectors_folder, data_type, 'valid', attentions_types, ner)
 
 vectors_with_six_attentions = os.path.join(vectors_folder, 'valid_h-r_r-t_h-t_r-h_t-r_t-h.pkl')
 
