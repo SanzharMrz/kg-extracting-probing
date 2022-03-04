@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 from itertools import product
-from IPython.display import display
 
 import nltk
-import spacy
+from utils_nltk import parse_ner_results
+
 # import fasttext as ft
 import en_core_web_sm
 
@@ -157,25 +157,28 @@ def get_embs_for_triplets(triplets, sentence_mapping, attention, attentions_type
     return sent_embeddings
 
 
-def return_embeddings(sentence, attentions_types, tokenizer, encoder, nlp, use_cuda, use_bert, use_lmms, target=None, mode='train'):
+def return_embeddings(sentence, attentions_types, tokenizer, encoder, nlp, use_cuda, use_bert, use_lmms, target=None, mode='train', ner=None):
     
-    tokenizer_name = str(tokenizer.__str__)
     rel_pos = ['NN', 'NNP', 'NNS', 'MD', 'POS', 'VB', 'VBG', 'VBD', 'VBN', 'VBP', 'VBZ']
     head_tail_pos = ['NN', 'NNP', 'NNS', 'PRP']
 
+    ner_candidates = []
+
     if mode == 'train':
         #  to process data with rel labels from dataset (pass target)
-        inputs, tokenid2word_mapping, token2id, sentence_mapping = create_mapping_target(sentence, 
-                                                                                         target, 
-                                                                                         return_pt=True, 
-                                                                                         tokenizer=tokenizer)
-    
+        inputs, tokenid2word_mapping, _, sentence_mapping = create_mapping_target(sentence, 
+                                                                                  target, 
+                                                                                  return_pt=True, 
+                                                                                  tokenizer=tokenizer)
     else:
         #  to process data to predict
-        inputs, tokenid2word_mapping, token2id, sentence_mapping, noun_chunks = create_mapping(sentence, 
-                                                                                               return_pt=True, 
-                                                                                               nlp=nlp,
-                                                                                               tokenizer=tokenizer)
+        ner_results = ner(sentence)
+        ner_candidates = parse_ner_results(ner_results)
+        inputs, tokenid2word_mapping, _, sentence_mapping, _ = create_mapping(sentence, 
+                                                                              return_pt=True, 
+                                                                              nlp=nlp,
+                                                                              tokenizer=tokenizer,
+                                                                              ner=ner_candidates)
 
     with torch.no_grad():
         if use_cuda:
@@ -206,7 +209,7 @@ def return_embeddings(sentence, attentions_types, tokenizer, encoder, nlp, use_c
     
     #  get candidates for head, tail and rel
     words = [token for token in sentence_mapping if token not in string.punctuation]
-    nn_words = [word for word in words if nltk.pos_tag([word])[0][1] in head_tail_pos]
+    nn_words = [word for word in words if (nltk.pos_tag([word])[0][1] in head_tail_pos) and (word not in ner_candidates)]
     other_words = [word for word in words if nltk.pos_tag([word])[0][1] in rel_pos]
     
     sent_embeddings = []
@@ -259,7 +262,7 @@ def get_filename(data_type, attentions_types, use_bert, use_lmms):
     return name
 
 
-def get_embeddings_corpus(save_folder, data_path, data_type, attentions_types, use_bert=False, use_lmms=False):  
+def get_embeddings_corpus(save_folder, data_path, data_type, attentions_types, use_bert=False, use_lmms=False, ner=None):  
     use_cuda = True
     data = pd.read_csv(f'../data/{data_path}/{data_type}.csv', header=0)
     all_embeddings = []
@@ -281,7 +284,8 @@ def get_embeddings_corpus(save_folder, data_path, data_type, attentions_types, u
                                        use_bert=use_bert, 
                                        use_lmms=use_lmms, 
                                        target=target, 
-                                       mode=mode)
+                                       mode=mode,
+                                       ner=ner)
         # append for valid, extend for train test
         if mode in ['train', 'test']:
             all_embeddings.extend(embeddings_text)
