@@ -56,7 +56,7 @@ if args.compute_raw_embeddings:
     if args.compute_raw_embeddings_test:
         get_embeddings_corpus(vectors_folder, data_type, 'test', attentions_types)
     if args.compute_raw_embeddings_valid:
-        get_embeddings_corpus(vectors_folder, data_type, 'valid', attentions_types, ner)
+        get_embeddings_corpus(vectors_folder, data_type, 'valid', attentions_types, ner=ner)
 
 vectors_with_six_attentions = os.path.join(vectors_folder, 'valid_h-r_r-t_h-t_r-h_t-r_t-h.pkl')
 

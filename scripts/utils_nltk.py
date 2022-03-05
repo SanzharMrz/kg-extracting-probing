@@ -3,7 +3,6 @@ from nltk.tokenize import word_tokenize, MWETokenizer
 from nltk import pos_tag, RegexpParser, Tree
 import numpy as np
 import torch
-from utils_nltk import parse_ner_results
 
 from copy import copy
 
