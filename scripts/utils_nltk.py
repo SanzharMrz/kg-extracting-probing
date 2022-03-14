@@ -3,11 +3,32 @@ from nltk.tokenize import word_tokenize, MWETokenizer
 from nltk import pos_tag, RegexpParser, Tree
 import numpy as np
 import torch
+import argparse
+import textwrap
 
 from copy import copy
 
 NP = "NP: {(<V\w+>|<NN\w?>|<JJ\w?>)+.*<NN\w?>}"
 chunker = RegexpParser(NP)
+
+
+def get_args():
+    parser = argparse.ArgumentParser(prog='MAIN', description=textwrap.dedent('''\
+                                                        Run probing experiments! Examples:
+                                                        --------------------------------------------------
+                                                        python main.py -e not_biased_dataset -c 0 -s 0 1 1
+                                                        python main.py -e biased_dataset
+                                                        '''))
+    parser.add_argument('-e', '--experiment_name', type=str, help='set here your experiment name', default='default_experiment')
+    parser.add_argument('-c', '--compute_raw_embeddings', type=int, help='if you want to compute raw vectors experiment set 1 else 0', default=0)
+    parser.add_argument('-s', '--stages', help='experiment stages', type=int, action='store', nargs=3, default=[1, 1, 1])
+    parser.add_argument('-n', '--ner', help='use ner filters', type=int, default=0)
+
+    parser.add_argument('-ct', '--compute_raw_embeddings_train', type=int, help='if you want to compute train raw vectors experiment set 1 else 0', default=1)
+    parser.add_argument('-cte', '--compute_raw_embeddings_test', type=int, help='if you want to compute test raw vectors experiment set 1 else 0', default=1)
+    parser.add_argument('-cv', '--compute_raw_embeddings_valid', type=int, help='if you want to compute valid raw vectors experiment set 1 else 0', default=1)
+    args = parser.parse_args()
+    return args
 
 
 def get_continuous_chunks(text, chunk_func):

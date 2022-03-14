@@ -172,8 +172,10 @@ def return_embeddings(sentence, attentions_types, tokenizer, encoder, nlp, use_c
                                                                                   tokenizer=tokenizer)
     else:
         #  to process data to predict
-        ner_results = ner(sentence)
-        ner_candidates = parse_ner_results(ner_results)
+        ner_candidates = []
+        if ner:
+            ner_results = ner(sentence)
+            ner_candidates = parse_ner_results(ner_results)
         inputs, tokenid2word_mapping, _, sentence_mapping, _ = create_mapping(sentence, 
                                                                               return_pt=True, 
                                                                               nlp=nlp,

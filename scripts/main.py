@@ -1,7 +1,5 @@
 import os
 import pickle
-import textwrap
-import argparse
 
 import itertools
 import pandas as pd
@@ -14,30 +12,20 @@ from services_logreg import (get_vectors_name, get_Xy_data, train_lr_bin, train_
 from services_metrics_with_multi import (get_vectorname, load_lr_models, compute_csv_default, compute_csv)
 from services_embeddings import get_embeddings_corpus
 
-from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+from utils_nltk import get_args
 
-tokenizer_ner = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
-model_ner = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
-ner = pipeline("ner", model=model_ner, tokenizer=tokenizer_ner)
 
-parser = argparse.ArgumentParser(prog='MAIN', description=textwrap.dedent('''\
-                                                    Run probing experiments! Examples:
-                                                    --------------------------------------------------
-                                                    python main.py -e not_biased_dataset -c 0 -s 0 1 1
-                                                    python main.py -e biased_dataset
-                                                    '''))
-parser.add_argument('-e', '--experiment_name', type=str, help='set here your experiment name', default='default_experiment')
-parser.add_argument('-c', '--compute_raw_embeddings', type=int, help='if you want to compute raw vectors experiment set 1 else 0', default=0)
-parser.add_argument('-s', '--stages', help='experiment stages', type=int, action='store', nargs=3, default=[1, 1, 1])
-
-parser.add_argument('-ct', '--compute_raw_embeddings_train', type=int, help='if you want to compute train raw vectors experiment set 1 else 0', default=1)
-parser.add_argument('-cte', '--compute_raw_embeddings_test', type=int, help='if you want to compute test raw vectors experiment set 1 else 0', default=1)
-parser.add_argument('-cv', '--compute_raw_embeddings_valid', type=int, help='if you want to compute valid raw vectors experiment set 1 else 0', default=1)
-
-args = parser.parse_args()
-
+args = get_args()
 experiment_name = args.experiment_name
 stages = args.stages
+ner = None
+
+if args.ner:
+    from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+    tokenizer_ner = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
+    model_ner = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
+    ner = pipeline("ner", model=model_ner, tokenizer=tokenizer_ner)
+
 
 experiment_path = os.path.join(EXPERIMENTS_BASE_DIR, experiment_name)
 vectors_folder = os.path.join(experiment_path, 'vectors')
