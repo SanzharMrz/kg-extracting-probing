@@ -271,6 +271,7 @@ def compute_logreg_nm_new(embeddings, targets, attention_types, use_bert, use_lm
     fp, tp, fn = 0, 0, 0
     tp_predicts_dict = {}
     fp_predicts_dict = {}
+    fn_predicts_dict = {}
     assert len(embeddings) == len(targets)
     for idx, text_embeddings in tqdm(enumerate(embeddings), total=len(embeddings)):
 #         try:
@@ -282,16 +283,23 @@ def compute_logreg_nm_new(embeddings, targets, attention_types, use_bert, use_lm
         target_triplets = [target[:3] for target in targets[idx]]
         tp_predicts = []
         fp_predicts = []
+        fn_predicts = []
         
         for i, predict in enumerate(filtered_predictions):
             
             score_bool = compare_triplets(target_triplets, predict)
 
             if score_bool:
-                tp_predicts.append((predict[0], predict[1], predict[2], predicted_labels[i], multi_confidences[i]))
+                tp_predicts.append((predict[0], 
+                                    predict[1], 
+                                    # predict[2], 
+                                    predicted_labels[i], multi_confidences[i]))
                 tp += 1
             else:
-                fp_predicts.append((predict[0], predict[1], predict[2], predicted_labels[i], multi_confidences[i]))
+                fp_predicts.append((predict[0], 
+                                    predict[1], 
+                                    # predict[2], 
+                                    predicted_labels[i], multi_confidences[i]))
                 fp += 1
                 
         if len(tp_predicts):
@@ -303,16 +311,19 @@ def compute_logreg_nm_new(embeddings, targets, attention_types, use_bert, use_lm
         for target in target_triplets:
             score_bool = compare_triplets(filtered_predictions, target)
             if not score_bool:
+                fn_predicts.append(target)
                 fn += 1
+        if len(fn_predicts):
+            fn_predicts_dict[idx] = fn_predicts
 
     try:        
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
         f1 = 2 * (precision * recall) / (precision + recall)
-        return precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fp, tp
+        return precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fn_predicts_dict, fp, tp
     
     except ZeroDivisionError:
-        return 0, 0, 0, tp_predicts_dict, fp_predicts_dict, 0, 0
+        return 0, 0, 0, tp_predicts_dict, fp_predicts_dict, fn_predicts_dict, 0, 0
 
 
 
@@ -321,13 +332,14 @@ def compute_csv(dataset, lr_bin, lr_multi, attention_types, use_bert, use_lmms, 
     subset_target = dataset.target.apply(eval).values
     embeddings = np.array(full_embeddings)
     
-    precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fp, tp = compute_logreg_nm_new(embeddings, subset_target, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin, threshold_multi)
+    precision, recall, f1, tp_predicts_dict, fp_predicts_dict, fn_predicts_dict, fp, tp = compute_logreg_nm_new(embeddings, subset_target, attention_types, use_bert, use_lmms, lr_bin, lr_multi, threshold_bin, threshold_multi)
 
     scoring_result = pd.DataFrame({'precision': [precision], 
                                    'recall': [recall], 
                                    'f1': [f1],
                                    'tps_dict': [tp_predicts_dict],
                                    'fps_dict': [fp_predicts_dict],
+                                   'fns_dict': [fn_predicts_dict],
                                    'tps': [tp],
                                    'fps': [fp],
                                    })
