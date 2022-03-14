@@ -209,7 +209,7 @@ def return_embeddings(sentence, attentions_types, tokenizer, encoder, nlp, use_c
     
     #  get candidates for head, tail and rel
     words = [token for token in sentence_mapping if token not in string.punctuation]
-    nn_words = [word for word in words if (nltk.pos_tag([word])[0][1] in head_tail_pos) and (word not in ner_candidates)]
+    nn_words = [word for word in words if (nltk.pos_tag([word])[0][1] in head_tail_pos)]
     other_words = [word for word in words if nltk.pos_tag([word])[0][1] in rel_pos]
     
     sent_embeddings = []

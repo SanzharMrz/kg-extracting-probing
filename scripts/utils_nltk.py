@@ -40,9 +40,10 @@ def create_mapping(sentence, return_pt=False, nlp = None, tokenizer=None, ner=No
     for chunk in noun_chunks:
         chunk_tokens = word_tokenize(chunk)
         tokenizer_mwe.add_mwe(tuple(chunk_tokens))
-        
-    for parsed_candidate in ner:
-        tokenizer_mwe.add_mwe(tuple(word_tokenize(parsed_candidate)))
+    
+    if ner:
+        for parsed_candidate in ner:
+            tokenizer_mwe.add_mwe(tuple(word_tokenize(parsed_candidate)))
 
     single_tokens = word_tokenize(sentence)
     sentence_mapping = tokenizer_mwe.tokenize(single_tokens)
